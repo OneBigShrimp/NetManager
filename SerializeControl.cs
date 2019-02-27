@@ -34,15 +34,16 @@ namespace MyNetManager
         /// </summary>
         /// <param name="type"></param>
         /// <param name="typeId"></param>
-        internal void Regist(Type type, int typeId)
+        internal void Regist(Type type)
         {
+            int typeId = Utils.HashString(type.Name);
             if (!typeof(IProtocol).IsAssignableFrom(type))
             {
                 throw new RegistTypeException(type);
             }
             if (id2Type.ContainsKey(typeId))
             {
-                throw new TypeIdRepeatException(typeId);
+                throw new TypeIdRepeatException(typeId, type, id2Type[typeId]);
             }
 
             AddClass(type);
@@ -178,42 +179,37 @@ namespace MyNetManager
 
             List<Type> newAddTyps = new List<Type>();
 
-            List<FieldInfo> allFields = new List<FieldInfo>(type.GetFields(BindingFlags.Public | BindingFlags.Instance));
-            //不同的机器可能反射获取到的顺序不一样,有时可声明顺序不同,所以进行一次排序
-            allFields.Sort((a, b) =>
-            {
-                return string.Compare(a.Name, b.Name);
-            });
+            FieldInfo[] allField = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
 
-            SerializeBase[] sbArray = new SerializeBase[allFields.Count];
-            DeserializeBase[] dbArray = new DeserializeBase[allFields.Count];
-            for (int i = 0; i < allFields.Count; i++)
+            SerializeBase[] sbArray = new SerializeBase[allField.Length];
+            DeserializeBase[] dbArray = new DeserializeBase[allField.Length];
+            for (int i = 0; i < allField.Length; i++)
             {
-                Type fieldType = allFields[i].FieldType;
+                Type fieldType = allField[i].FieldType;
                 if (fieldType == typeof(int))
                 {
-                    sbArray[i] = new SerializeInt(allFields[i]);
-                    dbArray[i] = new DeserializeInt(allFields[i]);
+                    sbArray[i] = new SerializeInt(allField[i]);
+                    dbArray[i] = new DeserializeInt(allField[i]);
                 }
                 else if (fieldType == typeof(string))
                 {
-                    sbArray[i] = new SerializeString(allFields[i]);
-                    dbArray[i] = new DeserializeString(allFields[i]);
+                    sbArray[i] = new SerializeString(allField[i]);
+                    dbArray[i] = new DeserializeString(allField[i]);
                 }
                 else if (fieldType == typeof(byte))
                 {
-                    sbArray[i] = new SerializeByte(allFields[i]);
-                    dbArray[i] = new DeserializeByte(allFields[i]);
+                    sbArray[i] = new SerializeByte(allField[i]);
+                    dbArray[i] = new DeserializeByte(allField[i]);
                 }
                 else if (fieldType == typeof(float))
                 {
-                    sbArray[i] = new SerializeFloat(allFields[i]);
-                    dbArray[i] = new DeserializeFloat(allFields[i]);
+                    sbArray[i] = new SerializeFloat(allField[i]);
+                    dbArray[i] = new DeserializeFloat(allField[i]);
                 }
                 else if (typeof(ISerObj).IsAssignableFrom(fieldType))
                 {
-                    sbArray[i] = new SerializeObj(allFields[i]);
-                    dbArray[i] = new DeserializeObj(allFields[i]);
+                    sbArray[i] = new SerializeObj(allField[i]);
+                    dbArray[i] = new DeserializeObj(allField[i]);
                     if (!newAddTyps.Contains(fieldType))
                     {
                         newAddTyps.Add(fieldType);
@@ -224,8 +220,8 @@ namespace MyNetManager
                 }
                 else if (fieldType.IsArray)
                 {
-                    sbArray[i] = new SerializeArray(allFields[i]);
-                    dbArray[i] = new DeserializeArray(allFields[i]);
+                    sbArray[i] = new SerializeArray(allField[i]);
+                    dbArray[i] = new DeserializeArray(allField[i]);
                     Type eleType = fieldType.GetElementType();
                     if (typeof(ISerObj).IsAssignableFrom(eleType))
                     {
@@ -237,7 +233,7 @@ namespace MyNetManager
                 }
                 else
                 {
-                    throw new Exception("Can't serialize type -->" + allFields[i].FieldType.ToString());
+                    throw new Exception("Can't serialize type -->" + allField[i].FieldType.ToString());
                 }
             }
             ISerializable ser;

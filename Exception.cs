@@ -53,16 +53,21 @@ namespace MyNetManager
     public class TypeIdRepeatException : Exception
     {
         int _typeId;
-        public TypeIdRepeatException(int typeId)
+        Type _tp1;
+        Type _tp2;
+        public TypeIdRepeatException(int typeId, Type tp1, Type tp2)
         {
             this._typeId = typeId;
+            this._tp1 = tp1;
+            this._tp2 = tp2;
         }
 
         public override string Message
         {
             get
             {
-                return string.Format("The typeId '{0}' has been regist multiply times", this._typeId);
+                return string.Format("Two type: '{0}' and '{1}' has the same hashvalue : {2}, you can change one of the name",
+                    this._typeId, this._tp1.Name, this._tp2.Name);
             }
         }
     }

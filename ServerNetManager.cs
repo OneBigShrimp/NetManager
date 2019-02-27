@@ -27,9 +27,9 @@ namespace MyNetManager
             this._excProcess = excProcess;
         }
 
-        public void Regist(Type type, int typeId)
+        public void Regist(Type type)
         {
-            SerializeControl.Instance.Regist(type, typeId);
+            SerializeControl.Instance.Regist(type);
         }
 
         public void StartListen(string host, int port)
