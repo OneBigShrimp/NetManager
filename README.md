@@ -1,0 +1,3 @@
+# NetManager
+轻量级网络通信库,服务器使用ServerNetManager监听连接和绑定协议,客户端使用ClientNetManager请求连接和绑定协议,协议对象实现IProtocol接口即可,
+协议中可以嵌套结构,结构实现ISerObj接口即可.详细使用方式可以参照Tetris的两个仓库
